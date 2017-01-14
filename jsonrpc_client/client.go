@@ -341,7 +341,7 @@ func (client *EthereumClient) issueRequest(reqBody *JSONRPCRequest) ([]byte, err
 }
 
 // eth_newBlockFilter calls the eth_newBlockFilter JSON-RPC method
-func (client *EthereumClient) eth_newBlockFilter() (string, error) {
+func (client *EthereumClient) Eth_newBlockFilter() (string, error) {
 
 	reqBody := JSONRPCRequest{
 		JSONRPC: "2.0",
@@ -365,7 +365,7 @@ func (client *EthereumClient) eth_newBlockFilter() (string, error) {
 }
 
 // eth_newPendingTransactionFilter calls the eth_newPendingTransactionFilter JSON-RPC method
-func (client *EthereumClient) eth_newPendingTransactionFilter() (string, error) {
+func (client *EthereumClient) Eth_newPendingTransactionFilter() (string, error) {
 
 	reqBody := JSONRPCRequest{
 		JSONRPC: "2.0",
@@ -389,7 +389,7 @@ func (client *EthereumClient) eth_newPendingTransactionFilter() (string, error) 
 }
 
 // eth_getFilterChanges calls the eth_getFilterChanges JSON-RPC method
-func (client *EthereumClient) eth_getFilterChanges(filterID string) ([]string, error) {
+func (client *EthereumClient) Eth_getFilterChanges(filterID string) ([]string, error) {
 
 	reqBody := JSONRPCRequest{
 		JSONRPC: "2.0",
@@ -413,7 +413,7 @@ func (client *EthereumClient) eth_getFilterChanges(filterID string) ([]string, e
 }
 
 // eth_getBlockByHash calls the eth_getBlockByHash JSON-RPC method
-func (client *EthereumClient) eth_getBlockByHash(blockHash string) (*Block, error) {
+func (client *EthereumClient) Eth_getBlockByHash(blockHash string) (*Block, error) {
 
 	reqBody := JSONRPCRequest{
 		JSONRPC: "2.0",
@@ -442,7 +442,7 @@ func (client *EthereumClient) eth_getBlockByHash(blockHash string) (*Block, erro
 }
 
 // eth_getTransactionByHash calls the eth_getTransactionByHash JSON-RPC method
-func (client *EthereumClient) eth_getTransactionByHash(txHash string) (*Transaction, error) {
+func (client *EthereumClient) Eth_getTransactionByHash(txHash string) (*Transaction, error) {
 
 	reqBody := JSONRPCRequest{
 		JSONRPC: "2.0",
