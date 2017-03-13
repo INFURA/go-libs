@@ -187,32 +187,32 @@ type TransactionResult struct {
 func (txResult *TransactionResult) ToTransaction() (*Transaction, error) {
 	blockNumber, err := strconv.ParseInt(txResult.BlockNumber, 0, 32)
 	if err != nil {
-		return nil, fmt.Errorf("ToBlock BlockNumber: %v", err)
+		return nil, fmt.Errorf("ToTransaction BlockNumber: %v", err)
 	}
 
 	gas, err := strconv.ParseInt(txResult.Gas, 0, 32)
 	if err != nil {
-		return nil, fmt.Errorf("ToBlock Gas: %v", err)
+		return nil, fmt.Errorf("ToTransaction Gas: %v", err)
 	}
 
 	gasPrice, err := strconv.ParseInt(txResult.GasPrice, 0, 64)
 	if err != nil {
-		return nil, fmt.Errorf("ToBlock GasPrice: %v", err)
+		return nil, fmt.Errorf("ToTransaction GasPrice: %v", err)
 	}
 
 	nonce, err := strconv.ParseInt(txResult.Nonce, 0, 32)
 	if err != nil {
-		return nil, fmt.Errorf("ToBlock Nonce: %v", err)
+		return nil, fmt.Errorf("ToTransaction Nonce: %v", err)
 	}
 
 	standardV, err := strconv.ParseInt(txResult.StandardV, 0, 32)
 	if err != nil {
-		return nil, fmt.Errorf("ToBlock StandardV: %v", err)
+		return nil, fmt.Errorf("ToTransaction StandardV: %v", err)
 	}
 
 	transactionIndex, err := strconv.ParseInt(txResult.TransactionIndex, 0, 32)
 	if err != nil {
-		return nil, fmt.Errorf("ToBlock TransactionIndex: %v", err)
+		return nil, fmt.Errorf("ToTransaction TransactionIndex: %v", err)
 	}
 
 	v, err := txResult.convertV()
