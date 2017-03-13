@@ -2,6 +2,7 @@ package jsonrpc_client
 
 import (
 	"encoding/json"
+	"fmt"
 	"io/ioutil"
 	"math/big"
 	"net/http"
@@ -32,6 +33,11 @@ func (req *JSONRPCRequest) ToJSON() ([]byte, error) {
 type ResponseBase struct {
 	JSONRPC string `json:"jsonrpc"`
 	ID      int64  `json:"id"`
+}
+
+type BlockNumberResponse struct {
+	ResponseBase
+	Result string `json:"result"`
 }
 
 type NewFilterResponse struct {
@@ -84,17 +90,17 @@ func (blockResult *BlockResult) ToBlock() (*Block, error) {
 	// string-to-integer conversions
 	difficulty, err := strconv.ParseInt(blockResult.Difficulty, 0, 64)
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("ToBlock Difficulty: %v", err)
 	}
 
 	gasLimit, err := strconv.ParseInt(blockResult.GasLimit, 0, 32)
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("ToBlock GasLimit: %v", err)
 	}
 
 	gasUsed, err := strconv.ParseInt(blockResult.GasUsed, 0, 32)
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("ToBlock GasUsed: %v", err)
 	}
 
 	nonce := new(big.Int)
@@ -102,17 +108,17 @@ func (blockResult *BlockResult) ToBlock() (*Block, error) {
 
 	number, err := strconv.ParseInt(blockResult.Number, 0, 32)
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("ToBlock Number: %v", err)
 	}
 
 	size, err := strconv.ParseInt(blockResult.Size, 0, 32)
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("ToBlock Size: %v", err)
 	}
 
 	timestamp, err := strconv.ParseInt(blockResult.Timestamp, 0, 32)
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("ToBlock Timestamp: %v", err)
 	}
 
 	totalDifficulty := new(big.Int)
@@ -164,11 +170,13 @@ type TransactionResult struct {
 	GasPrice         string      `json:"gasPrice"`
 	Hash             string      `json:"hash"`
 	Input            string      `json:"input"`
+	NetworkId        int         `json:"networkId"`
 	Nonce            string      `json:"nonce"`
 	PublicKey        string      `json:"publicKey"`
 	R                string      `json:"r"`
 	Raw              string      `json:"raw"`
 	S                string      `json:"s"`
+	StandardV        string      `json:"standardV"`
 	To               *string     `json:"to"`
 	TransactionIndex string      `json:"transactionIndex"`
 	V                interface{} `json:"v"` // geth thinks V is a string; parity thinks it's an int
@@ -179,27 +187,32 @@ type TransactionResult struct {
 func (txResult *TransactionResult) ToTransaction() (*Transaction, error) {
 	blockNumber, err := strconv.ParseInt(txResult.BlockNumber, 0, 32)
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("ToBlock BlockNumber: %v", err)
 	}
 
 	gas, err := strconv.ParseInt(txResult.Gas, 0, 32)
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("ToBlock Gas: %v", err)
 	}
 
 	gasPrice, err := strconv.ParseInt(txResult.GasPrice, 0, 64)
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("ToBlock GasPrice: %v", err)
 	}
 
 	nonce, err := strconv.ParseInt(txResult.Nonce, 0, 32)
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("ToBlock Nonce: %v", err)
+	}
+
+	standardV, err := strconv.ParseInt(txResult.StandardV, 0, 32)
+	if err != nil {
+		return nil, fmt.Errorf("ToBlock StandardV: %v", err)
 	}
 
 	transactionIndex, err := strconv.ParseInt(txResult.TransactionIndex, 0, 32)
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("ToBlock TransactionIndex: %v", err)
 	}
 
 	v, err := txResult.convertV()
@@ -219,11 +232,13 @@ func (txResult *TransactionResult) ToTransaction() (*Transaction, error) {
 		GasPrice:         gasPrice,
 		Hash:             txResult.Hash,
 		Input:            txResult.Input,
+		NetworkId:        txResult.NetworkId,
 		Nonce:            int(nonce),
 		PublicKey:        txResult.PublicKey,
 		R:                txResult.R,
 		Raw:              txResult.Raw,
 		S:                txResult.S,
+		StandardV:        int(standardV),
 		To:               txResult.To,
 		TransactionIndex: int(transactionIndex),
 		V:                v,
@@ -245,7 +260,7 @@ func (txResult *TransactionResult) convertV() (newV int, err error) {
 	// try geth first
 	gethVal, err := strconv.ParseInt(txResult.V.(string), 0, 32)
 	if err != nil {
-		return 0, err
+		return 0, fmt.Errorf("convertV geth: %v", err)
 	}
 
 	return int(gethVal), nil
@@ -294,11 +309,13 @@ type Transaction struct {
 	GasPrice         int64    `json:"gas_price"`
 	Hash             string   `json:"hash"`
 	Input            string   `json:"input"`
+	NetworkId        int      `json:"network_id"`
 	Nonce            int      `json:"nonce"`
 	PublicKey        string   `json:"public_key"`
 	R                string   `json:"r"`
 	Raw              string   `json:"raw"`
 	S                string   `json:"s"`
+	StandardV        int      `json:"standard_v"`
 	To               *string  `json:"to"`
 	TransactionIndex int      `json:"transaction_index"`
 	V                int      `json:"v"`
@@ -340,7 +357,7 @@ func (client *EthereumClient) issueRequest(reqBody *JSONRPCRequest) ([]byte, err
 	return body, nil
 }
 
-// eth_newBlockFilter calls the eth_newBlockFilter JSON-RPC method
+// Eth_newBlockFilter calls the eth_newBlockFilter JSON-RPC method
 func (client *EthereumClient) Eth_newBlockFilter() (string, error) {
 
 	reqBody := JSONRPCRequest{
@@ -364,7 +381,7 @@ func (client *EthereumClient) Eth_newBlockFilter() (string, error) {
 	return clientResp.Result, nil
 }
 
-// eth_newPendingTransactionFilter calls the eth_newPendingTransactionFilter JSON-RPC method
+// Eth_newPendingTransactionFilter calls the eth_newPendingTransactionFilter JSON-RPC method
 func (client *EthereumClient) Eth_newPendingTransactionFilter() (string, error) {
 
 	reqBody := JSONRPCRequest{
@@ -388,7 +405,7 @@ func (client *EthereumClient) Eth_newPendingTransactionFilter() (string, error) 
 	return clientResp.Result, nil
 }
 
-// eth_getFilterChanges calls the eth_getFilterChanges JSON-RPC method
+// Eth_getFilterChanges calls the eth_getFilterChanges JSON-RPC method
 func (client *EthereumClient) Eth_getFilterChanges(filterID string) ([]string, error) {
 
 	reqBody := JSONRPCRequest{
@@ -412,14 +429,14 @@ func (client *EthereumClient) Eth_getFilterChanges(filterID string) ([]string, e
 	return clientResp.Result, nil
 }
 
-// eth_getBlockByHash calls the eth_getBlockByHash JSON-RPC method
-func (client *EthereumClient) Eth_getBlockByHash(blockHash string) (*Block, error) {
+// Eth_getBlockByHash calls the eth_getBlockByHash JSON-RPC method
+func (client *EthereumClient) Eth_getBlockByHash(blockHash string, full bool) (*Block, error) {
 
 	reqBody := JSONRPCRequest{
 		JSONRPC: "2.0",
 		ID:      1,
 		Method:  "eth_getBlockByHash",
-		Params:  []interface{}{blockHash, true},
+		Params:  []interface{}{blockHash, full},
 	}
 
 	body, err := client.issueRequest(&reqBody)
@@ -441,7 +458,7 @@ func (client *EthereumClient) Eth_getBlockByHash(blockHash string) (*Block, erro
 	return block, nil
 }
 
-// eth_getTransactionByHash calls the eth_getTransactionByHash JSON-RPC method
+// Eth_getTransactionByHash calls the eth_getTransactionByHash JSON-RPC method
 func (client *EthereumClient) Eth_getTransactionByHash(txHash string) (*Transaction, error) {
 
 	reqBody := JSONRPCRequest{
@@ -468,4 +485,64 @@ func (client *EthereumClient) Eth_getTransactionByHash(txHash string) (*Transact
 	}
 
 	return tx, nil
+}
+
+// Eth_getBlockByNumber calls the eth_getBlockByNumber JSON-RPC method
+func (client *EthereumClient) Eth_getBlockByNumber(blockNumber int, full bool) (*Block, error) {
+
+	blockNumberHex := "0x" + strconv.FormatInt(int64(blockNumber), 16)
+
+	reqBody := JSONRPCRequest{
+		JSONRPC: "2.0",
+		ID:      1,
+		Method:  "eth_getBlockByNumber",
+		Params:  []interface{}{blockNumberHex, full},
+	}
+
+	body, err := client.issueRequest(&reqBody)
+	if err != nil {
+		return nil, err
+	}
+
+	var clientResp BlockResponse
+	err = json.Unmarshal(body, &clientResp)
+	if err != nil {
+		return nil, err
+	}
+
+	block, err := clientResp.Result.ToBlock()
+	if err != nil {
+		return nil, err
+	}
+
+	return block, nil
+}
+
+// Eth_blockNumber calls the eth_blockNumber JSON-RPC method
+func (client *EthereumClient) Eth_blockNumber() (int, error) {
+
+	reqBody := JSONRPCRequest{
+		JSONRPC: "2.0",
+		ID:      1,
+		Method:  "eth_blockNumber",
+		Params:  []interface{}{},
+	}
+
+	body, err := client.issueRequest(&reqBody)
+	if err != nil {
+		return 0, err
+	}
+
+	var clientResp BlockNumberResponse
+	err = json.Unmarshal(body, &clientResp)
+	if err != nil {
+		return 0, err
+	}
+
+	blockNumber, err := strconv.ParseInt(clientResp.Result, 0, 32)
+	if err != nil {
+		return 0, err
+	}
+
+	return int(blockNumber), nil
 }
