@@ -162,25 +162,25 @@ func (blockResult *BlockResult) ToBlock() (*Block, error) {
 }
 
 type TransactionResult struct {
-	BlockHash        string      `json:"blockHash"`
-	BlockNumber      string      `json:"blockNumber"`
-	Creates          *string     `json:"creates"`
-	From             string      `json:"from"`
-	Gas              string      `json:"gas"`
-	GasPrice         string      `json:"gasPrice"`
-	Hash             string      `json:"hash"`
-	Input            string      `json:"input"`
-	NetworkId        *int        `json:"networkId"`
-	Nonce            string      `json:"nonce"`
-	PublicKey        string      `json:"publicKey"`
-	R                string      `json:"r"`
-	Raw              string      `json:"raw"`
-	S                string      `json:"s"`
-	StandardV        string      `json:"standardV"`
-	To               *string     `json:"to"`
-	TransactionIndex string      `json:"transactionIndex"`
-	V                string      `json:"v"`
-	Value            string      `json:"value"`
+	BlockHash        string  `json:"blockHash"`
+	BlockNumber      string  `json:"blockNumber"`
+	Creates          *string `json:"creates"`
+	From             string  `json:"from"`
+	Gas              string  `json:"gas"`
+	GasPrice         string  `json:"gasPrice"`
+	Hash             string  `json:"hash"`
+	Input            string  `json:"input"`
+	NetworkId        *int    `json:"networkId"`
+	Nonce            string  `json:"nonce"`
+	PublicKey        string  `json:"publicKey"`
+	R                string  `json:"r"`
+	Raw              string  `json:"raw"`
+	S                string  `json:"s"`
+	StandardV        string  `json:"standardV"`
+	To               *string `json:"to"`
+	TransactionIndex string  `json:"transactionIndex"`
+	V                string  `json:"v"`
+	Value            string  `json:"value"`
 }
 
 // ToTransaction converts a TransactionResult to a Transaction
