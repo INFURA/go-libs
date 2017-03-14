@@ -170,7 +170,7 @@ type TransactionResult struct {
 	GasPrice         string      `json:"gasPrice"`
 	Hash             string      `json:"hash"`
 	Input            string      `json:"input"`
-	NetworkId        int         `json:"networkId"`
+	NetworkId        *int        `json:"networkId"`
 	Nonce            string      `json:"nonce"`
 	PublicKey        string      `json:"publicKey"`
 	R                string      `json:"r"`
@@ -179,7 +179,7 @@ type TransactionResult struct {
 	StandardV        string      `json:"standardV"`
 	To               *string     `json:"to"`
 	TransactionIndex string      `json:"transactionIndex"`
-	V                interface{} `json:"v"` // geth thinks V is a string; parity thinks it's an int
+	V                string      `json:"v"`
 	Value            string      `json:"value"`
 }
 
@@ -215,9 +215,9 @@ func (txResult *TransactionResult) ToTransaction() (*Transaction, error) {
 		return nil, fmt.Errorf("ToTransaction TransactionIndex: %v", err)
 	}
 
-	v, err := txResult.convertV()
+	v, err := strconv.ParseInt(txResult.V, 0, 32)
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("ToTransaction V: %v", err)
 	}
 
 	value := new(big.Int)
@@ -241,29 +241,10 @@ func (txResult *TransactionResult) ToTransaction() (*Transaction, error) {
 		StandardV:        int(standardV),
 		To:               txResult.To,
 		TransactionIndex: int(transactionIndex),
-		V:                v,
+		V:                int(v),
 		Value:            value,
 	}
 	return &tx, nil
-}
-
-// convertV converts V, which can be either string (geth) or float64 (parity), to int
-func (txResult *TransactionResult) convertV() (newV int, err error) {
-	defer func() {
-		if r := recover(); r != nil {
-			// try parity second, if necessary
-			parityVal := txResult.V.(float64)
-			newV, err = int(parityVal), nil
-		}
-	}()
-
-	// try geth first
-	gethVal, err := strconv.ParseInt(txResult.V.(string), 0, 32)
-	if err != nil {
-		return 0, fmt.Errorf("convertV geth: %v", err)
-	}
-
-	return int(gethVal), nil
 }
 
 type Block struct {
@@ -309,7 +290,7 @@ type Transaction struct {
 	GasPrice         int64    `json:"gas_price"`
 	Hash             string   `json:"hash"`
 	Input            string   `json:"input"`
-	NetworkId        int      `json:"network_id"`
+	NetworkId        *int     `json:"network_id"`
 	Nonce            int      `json:"nonce"`
 	PublicKey        string   `json:"public_key"`
 	R                string   `json:"r"`
