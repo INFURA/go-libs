@@ -195,10 +195,8 @@ func (txResult *TransactionResult) ToTransaction() (*Transaction, error) {
 		return nil, fmt.Errorf("ToTransaction Gas: %v", err)
 	}
 
-	gasPrice, err := strconv.ParseInt(txResult.GasPrice, 0, 64)
-	if err != nil {
-		return nil, fmt.Errorf("ToTransaction GasPrice: %v", err)
-	}
+	gasPrice := new(big.Int)
+	gasPrice.SetString(txResult.GasPrice, 0)
 
 	nonce, err := strconv.ParseInt(txResult.Nonce, 0, 32)
 	if err != nil {
@@ -287,7 +285,7 @@ type Transaction struct {
 	Creates          *string  `json:"creates"`
 	From             string   `json:"from"`
 	Gas              int      `json:"gas"`
-	GasPrice         int64    `json:"gas_price"`
+	GasPrice         *big.Int `json:"gas_price"`
 	Hash             string   `json:"hash"`
 	Input            string   `json:"input"`
 	NetworkId        *int     `json:"network_id"`
