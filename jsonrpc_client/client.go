@@ -162,9 +162,9 @@ func (blockResult *BlockResult) ToBlock() (*Block, error) {
 }
 
 type TransactionResult struct {
-	BlockHash        *string `json:"blockHash"` // null for pending tx
+	BlockHash        *string `json:"blockHash"`   // null for pending tx
 	BlockNumber      *string `json:"blockNumber"` // null for pending tx
-	Creates          *string `json:"creates"` // Parity only; null when not creating contract
+	Creates          *string `json:"creates"`     // Parity only; null when not creating contract
 	From             string  `json:"from"`
 	Gas              string  `json:"gas"`
 	GasPrice         string  `json:"gasPrice"`
@@ -176,8 +176,8 @@ type TransactionResult struct {
 	R                string  `json:"r"`
 	Raw              string  `json:"raw"` // Parity only
 	S                string  `json:"s"`
-	StandardV        string  `json:"standardV"` // Parity only
-	To               *string `json:"to"` // null when creating contract
+	StandardV        string  `json:"standardV"`        // Parity only
+	To               *string `json:"to"`               // null when creating contract
 	TransactionIndex *string `json:"transactionIndex"` // null for pending tx
 	V                string  `json:"v"`
 	Value            string  `json:"value"`
