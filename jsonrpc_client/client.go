@@ -185,10 +185,11 @@ type TransactionResult struct {
 
 // ToTransaction converts a TransactionResult to a Transaction
 func (txResult *TransactionResult) ToTransaction() (*Transaction, error) {
-	blockNumber, err := strconv.ParseInt(txResult.BlockNumber, 0, 32)
+	blockNumber, err := strconv.ParseInt(*txResult.BlockNumber, 0, 32)
 	if err != nil {
 		return nil, fmt.Errorf("ToTransaction BlockNumber: %v", err)
 	}
+	blockNumberInt := int(blockNumber)
 
 	gas, err := strconv.ParseInt(txResult.Gas, 0, 32)
 	if err != nil {
@@ -208,10 +209,11 @@ func (txResult *TransactionResult) ToTransaction() (*Transaction, error) {
 		return nil, fmt.Errorf("ToTransaction StandardV: %v", err)
 	}
 
-	transactionIndex, err := strconv.ParseInt(txResult.TransactionIndex, 0, 32)
+	transactionIndex, err := strconv.ParseInt(*txResult.TransactionIndex, 0, 32)
 	if err != nil {
 		return nil, fmt.Errorf("ToTransaction TransactionIndex: %v", err)
 	}
+	transactionIndexInt := int(transactionIndex)
 
 	v, err := strconv.ParseInt(txResult.V, 0, 32)
 	if err != nil {
@@ -223,7 +225,7 @@ func (txResult *TransactionResult) ToTransaction() (*Transaction, error) {
 
 	tx := Transaction{
 		BlockHash:        txResult.BlockHash,
-		BlockNumber:      int(blockNumber),
+		BlockNumber:      &blockNumberInt,
 		Creates:          txResult.Creates,
 		From:             txResult.From,
 		Gas:              int(gas),
@@ -238,7 +240,7 @@ func (txResult *TransactionResult) ToTransaction() (*Transaction, error) {
 		S:                txResult.S,
 		StandardV:        int(standardV),
 		To:               txResult.To,
-		TransactionIndex: int(transactionIndex),
+		TransactionIndex: &transactionIndexInt,
 		V:                int(v),
 		Value:            value,
 	}
