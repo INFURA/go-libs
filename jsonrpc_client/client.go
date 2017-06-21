@@ -60,6 +60,16 @@ type TransactionResponse struct {
 	Result TransactionResult `json:"result"`
 }
 
+type StringResponse struct {
+	ResponseBase
+	Result string `json:"result"`
+}
+
+type BoolResponse struct {
+	ResponseBase
+	Result bool `json:"result"`
+}
+
 type BlockResult struct {
 	Author           string              `json:"author"` // Parity only
 	Difficulty       string              `json:"difficulty"`
@@ -526,4 +536,52 @@ func (client *EthereumClient) Eth_blockNumber() (int, error) {
 	}
 
 	return int(blockNumber), nil
+}
+
+// Web3_clientVersion calls the web3_clientVersion JSON-RPC method
+func (client *EthereumClient) Web3_clientVersion() (string, error) {
+
+	reqBody := JSONRPCRequest{
+		JSONRPC: "2.0",
+		ID:      1,
+		Method:  "web3_clientVersion",
+		Params:  []interface{}{},
+	}
+
+	body, err := client.issueRequest(&reqBody)
+	if err != nil {
+		return "", err
+	}
+
+	var clientResp StringResponse
+	err = json.Unmarshal(body, &clientResp)
+	if err != nil {
+		return "", err
+	}
+
+	return clientResp.Result, nil
+}
+
+// Eth_syncing calls the eth_syncing JSON-RPC method
+func (client *EthereumClient) Eth_syncing() (bool, error) {
+
+	reqBody := JSONRPCRequest{
+		JSONRPC: "2.0",
+		ID:      1,
+		Method:  "eth_syncing",
+		Params:  []interface{}{},
+	}
+
+	body, err := client.issueRequest(&reqBody)
+	if err != nil {
+		return false, err
+	}
+
+	var clientResp BoolResponse
+	err = json.Unmarshal(body, &clientResp)
+	if err != nil {
+		return false, err
+	}
+
+	return clientResp.Result, nil
 }
