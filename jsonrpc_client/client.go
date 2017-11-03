@@ -55,6 +55,15 @@ type BlockResponse struct {
 	Result BlockResult `json:"result"`
 }
 
+// ToJSON marshals a BlockResponse into JSON
+func (blockResp *BlockResponse) ToJSON() ([]byte, error) {
+	s, err := json.Marshal(blockResp)
+	if err != nil {
+		return nil, err
+	}
+	return s, nil
+}
+
 type TransactionResponse struct {
 	ResponseBase
 	Result TransactionResult `json:"result"`
