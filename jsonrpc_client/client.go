@@ -291,6 +291,15 @@ type Block struct {
 	Uncles           []string      `json:"uncles"`
 }
 
+func NewBlockFromJSON(b []byte) (*Block, error) {
+	block := Block{}
+	err := json.Unmarshal(b, &block)
+	if err != nil {
+		return nil, err
+	}
+	return &block, nil
+}
+
 // ToJSON marshals a Block into JSON
 func (block *Block) ToJSON() ([]byte, error) {
 	s, err := json.Marshal(block)
