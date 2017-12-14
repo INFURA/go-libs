@@ -180,6 +180,15 @@ func (blockResult *BlockResult) ToBlock() (*Block, error) {
 	return &block, nil
 }
 
+// ToJSON marshals a BlockResult into JSON
+func (blockResult *BlockResult) ToJSON() ([]byte, error) {
+	s, err := json.Marshal(blockResult)
+	if err != nil {
+		return nil, err
+	}
+	return s, nil
+}
+
 type TransactionResult struct {
 	BlockHash        *string `json:"blockHash"`   // null for pending tx
 	BlockNumber      *string `json:"blockNumber"` // null for pending tx
@@ -200,6 +209,15 @@ type TransactionResult struct {
 	TransactionIndex *string `json:"transactionIndex"` // null for pending tx
 	V                string  `json:"v"`
 	Value            string  `json:"value"`
+}
+
+// ToJSON marshals a TransactionResult into JSON
+func (txResult *TransactionResult) ToJSON() ([]byte, error) {
+	s, err := json.Marshal(txResult)
+	if err != nil {
+		return nil, err
+	}
+	return s, nil
 }
 
 // ToTransaction converts a TransactionResult to a Transaction
@@ -300,6 +318,55 @@ func NewBlockFromJSON(b []byte) (*Block, error) {
 	return &block, nil
 }
 
+// ToBlockResult
+func (block *Block) ToBlockResult() (*BlockResult, error) {
+
+	difficulty := "0x" + strconv.FormatInt(block.Difficulty, 16)
+	gasLimit := "0x" + strconv.FormatInt(int64(block.GasLimit), 16)
+	gasUsed := "0x" + strconv.FormatInt(int64(block.GasUsed), 16)
+	nonce := "0x" + block.Nonce.Text(16)
+	number := "0x" + strconv.FormatInt(int64(block.Number), 16)
+	size := "0x" + strconv.FormatInt(int64(block.Size), 16)
+	timestamp := "0x" + strconv.FormatInt(int64(block.Timestamp), 16)
+	totalDifficulty := "0x" + block.TotalDifficulty.Text(16)
+
+	blockResult := BlockResult{
+		Author:          block.Author,
+		Difficulty:      difficulty,
+		ExtraData:       block.ExtraData,
+		GasLimit:        gasLimit,
+		GasUsed:         gasUsed,
+		Hash:            block.Hash,
+		LogsBloom:       block.LogsBloom,
+		Miner:           block.Miner,
+		MixHash:         block.MixHash,
+		Nonce:           nonce,
+		Number:          number,
+		ParentHash:      block.ParentHash,
+		ReceiptsRoot:    block.ReceiptsRoot,
+		SealFields:      block.SealFields,
+		SHA3Uncles:      block.SHA3Uncles,
+		Size:            size,
+		StateRoot:       block.StateRoot,
+		Timestamp:       timestamp,
+		TotalDifficulty: totalDifficulty,
+		// Transactions
+		TransactionsRoot: block.TransactionsRoot,
+		Uncles:           block.Uncles,
+	}
+
+	// populate the transactions in the block
+	for _, tx := range block.Transactions {
+		txResult, err := tx.ToTransactionResult()
+		if err != nil {
+			return nil, err
+		}
+		blockResult.Transactions = append(blockResult.Transactions, *txResult)
+	}
+
+	return &blockResult, nil
+}
+
 // ToJSON marshals a Block into JSON
 func (block *Block) ToJSON() ([]byte, error) {
 	s, err := json.Marshal(block)
@@ -329,6 +396,42 @@ type Transaction struct {
 	TransactionIndex *int     `json:"transaction_index"`
 	V                int      `json:"v"`
 	Value            *big.Int `json:"value"`
+}
+
+// ToTransactionResult converts a Transaction to a TransactionResult
+func (tx *Transaction) ToTransactionResult() (*TransactionResult, error) {
+
+	blockNumber := "0x" + strconv.FormatInt(int64(*tx.BlockNumber), 16)
+	gas := "0x" + strconv.FormatInt(int64(tx.Gas), 16)
+	gasPrice := "0x" + tx.GasPrice.Text(16)
+	nonce := "0x" + strconv.FormatInt(int64(tx.Nonce), 16)
+	standardV := "0x" + strconv.FormatInt(int64(tx.StandardV), 16)
+	transactionIndex := "0x" + strconv.FormatInt(int64(*tx.TransactionIndex), 16)
+	v := "0x" + strconv.FormatInt(int64(tx.V), 16)
+	value := "0x" + tx.Value.Text(16)
+
+	txResult := TransactionResult{
+		BlockHash:        tx.BlockHash,
+		BlockNumber:      &blockNumber,
+		Creates:          tx.Creates,
+		From:             tx.From,
+		Gas:              gas,
+		GasPrice:         gasPrice,
+		Hash:             tx.Hash,
+		Input:            tx.Input,
+		NetworkId:        tx.NetworkId,
+		Nonce:            nonce,
+		PublicKey:        tx.PublicKey,
+		R:                tx.R,
+		Raw:              tx.Raw,
+		S:                tx.S,
+		StandardV:        standardV,
+		To:               tx.To,
+		TransactionIndex: &transactionIndex,
+		V:                v,
+		Value:            value,
+	}
+	return &txResult, nil
 }
 
 // ToJSON marshals a Transaction into JSON
