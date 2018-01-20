@@ -21,7 +21,7 @@ type Transaction struct {
 	R                string   `json:"r"`
 	Raw              string   `json:"raw"`
 	S                string   `json:"s"`
-	StandardV        int      `json:"standard_v"`
+	StandardV        *int     `json:"standard_v"`
 	To               *string  `json:"to"`
 	TransactionIndex *int     `json:"transaction_index"`
 	V                int      `json:"v"`
@@ -35,7 +35,13 @@ func (tx *Transaction) ToTransactionResult() (*TransactionResult, error) {
 	gas := "0x" + strconv.FormatInt(int64(tx.Gas), 16)
 	gasPrice := "0x" + tx.GasPrice.Text(16)
 	nonce := "0x" + strconv.FormatInt(int64(tx.Nonce), 16)
-	standardV := "0x" + strconv.FormatInt(int64(tx.StandardV), 16)
+
+	var standardV *string
+	if tx.StandardV != nil {
+		*standardV = "0x" + strconv.FormatInt(int64(*tx.StandardV), 16)
+	} else {
+		standardV = nil
+	}
 	transactionIndex := "0x" + strconv.FormatInt(int64(*tx.TransactionIndex), 16)
 	v := "0x" + strconv.FormatInt(int64(tx.V), 16)
 	value := "0x" + tx.Value.Text(16)
