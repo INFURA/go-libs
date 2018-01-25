@@ -28,6 +28,15 @@ type Transaction struct {
 	Value            *big.Int `json:"value"`
 }
 
+func NewTransactionFromJSON(b []byte) (*Transaction, error) {
+	tx := Transaction{}
+	err := json.Unmarshal(b, &tx)
+	if err != nil {
+		return nil, err
+	}
+	return &tx, nil
+}
+
 // ToTransactionResult converts a Transaction to a TransactionResult
 func (tx *Transaction) ToTransactionResult() (*TransactionResult, error) {
 
