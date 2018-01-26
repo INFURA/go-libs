@@ -22,7 +22,7 @@ type TransactionResult struct {
 	R                string  `json:"r"`
 	Raw              string  `json:"raw"` // Parity only
 	S                string  `json:"s"`
-	StandardV        string  `json:"standardV"`        // Parity only
+	StandardV        *string `json:"standardV"`        // Parity only
 	To               *string `json:"to"`               // null when creating contract
 	TransactionIndex *string `json:"transactionIndex"` // null for pending tx
 	V                string  `json:"v"`
@@ -59,9 +59,15 @@ func (txResult *TransactionResult) ToTransaction() (*Transaction, error) {
 		return nil, fmt.Errorf("ToTransaction Nonce: %v", err)
 	}
 
-	standardV, err := strconv.ParseInt(txResult.StandardV, 0, 32)
-	if err != nil {
-		return nil, fmt.Errorf("ToTransaction StandardV: %v", err)
+	var standardV *int
+	if txResult.StandardV != nil {
+		sv64, err := strconv.ParseInt(*txResult.StandardV, 0, 32)
+		if err != nil {
+			return nil, fmt.Errorf("ToTransaction StandardV: %v", err)
+		}
+		*standardV = int(sv64)
+	} else {
+		standardV = nil
 	}
 
 	transactionIndex, err := strconv.ParseInt(*txResult.TransactionIndex, 0, 32)
@@ -93,7 +99,7 @@ func (txResult *TransactionResult) ToTransaction() (*Transaction, error) {
 		R:                txResult.R,
 		Raw:              txResult.Raw,
 		S:                txResult.S,
-		StandardV:        int(standardV),
+		StandardV:        standardV,
 		To:               txResult.To,
 		TransactionIndex: &transactionIndexInt,
 		V:                int(v),
