@@ -40,15 +40,6 @@ func NewTransactionResultFromJSON(b []byte) (*TransactionResult, error) {
 	return &txResult, nil
 }
 
-// ToJSON marshals a TransactionResult into JSON
-func (txResult *TransactionResult) ToJSON() ([]byte, error) {
-	s, err := json.Marshal(txResult)
-	if err != nil {
-		return nil, err
-	}
-	return s, nil
-}
-
 // ToTransaction converts a TransactionResult to a Transaction
 func (txResult *TransactionResult) ToTransaction() (*Transaction, error) {
 	blockNumber, err := strconv.ParseInt(*txResult.BlockNumber, 0, 32)
@@ -118,6 +109,15 @@ func (txResult *TransactionResult) ToTransaction() (*Transaction, error) {
 		StandardV: standardV,
 	}
 	return &tx, nil
+}
+
+// ToJSON marshals a TransactionResult into JSON
+func (txResult *TransactionResult) ToJSON() ([]byte, error) {
+	s, err := json.Marshal(txResult)
+	if err != nil {
+		return nil, err
+	}
+	return s, nil
 }
 
 // Equals determines whether two TransactionResults are equal
