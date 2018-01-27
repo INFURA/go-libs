@@ -10,23 +10,34 @@ import (
 type TransactionResult struct {
 	BlockHash        *string `json:"blockHash"`   // null for pending tx
 	BlockNumber      *string `json:"blockNumber"` // null for pending tx
-	Creates          *string `json:"creates"`     // Parity only; null when not creating contract
 	From             string  `json:"from"`
 	Gas              string  `json:"gas"`
 	GasPrice         string  `json:"gasPrice"`
 	Hash             string  `json:"hash"`
 	Input            string  `json:"input"`
-	NetworkId        *int    `json:"networkId"` // Parity only
 	Nonce            string  `json:"nonce"`
-	PublicKey        string  `json:"publicKey"` // Parity only
 	R                string  `json:"r"`
-	Raw              string  `json:"raw"` // Parity only
 	S                string  `json:"s"`
-	StandardV        *string `json:"standardV"`        // Parity only
 	To               *string `json:"to"`               // null when creating contract
 	TransactionIndex *string `json:"transactionIndex"` // null for pending tx
 	V                string  `json:"v"`
 	Value            string  `json:"value"`
+
+	// Parity only
+	Creates   *string `json:"creates"`   // null when not creating contract
+	NetworkId *int    `json:"networkId"` // null for some txs
+	PublicKey *string `json:"publicKey"`
+	Raw       *string `json:"raw"`
+	StandardV *string `json:"standardV"`
+}
+
+func NewTransactionResultFromJSON(b []byte) (*TransactionResult, error) {
+	txResult := TransactionResult{}
+	err := json.Unmarshal(b, &txResult)
+	if err != nil {
+		return nil, err
+	}
+	return &txResult, nil
 }
 
 // ToJSON marshals a TransactionResult into JSON
@@ -61,13 +72,12 @@ func (txResult *TransactionResult) ToTransaction() (*Transaction, error) {
 
 	var standardV *int
 	if txResult.StandardV != nil {
-		sv64, err := strconv.ParseInt(*txResult.StandardV, 0, 32)
+		standardVInt64, err := strconv.ParseInt(*txResult.StandardV, 0, 32)
 		if err != nil {
 			return nil, fmt.Errorf("ToTransaction StandardV: %v", err)
 		}
-		*standardV = int(sv64)
-	} else {
-		standardV = nil
+		standardVInt := int(standardVInt64)
+		standardV = &standardVInt
 	}
 
 	transactionIndex, err := strconv.ParseInt(*txResult.TransactionIndex, 0, 32)
@@ -87,23 +97,65 @@ func (txResult *TransactionResult) ToTransaction() (*Transaction, error) {
 	tx := Transaction{
 		BlockHash:        txResult.BlockHash,
 		BlockNumber:      &blockNumberInt,
-		Creates:          txResult.Creates,
 		From:             txResult.From,
 		Gas:              int(gas),
 		GasPrice:         gasPrice,
 		Hash:             txResult.Hash,
 		Input:            txResult.Input,
-		NetworkId:        txResult.NetworkId,
 		Nonce:            int(nonce),
-		PublicKey:        txResult.PublicKey,
 		R:                txResult.R,
-		Raw:              txResult.Raw,
 		S:                txResult.S,
-		StandardV:        standardV,
 		To:               txResult.To,
 		TransactionIndex: &transactionIndexInt,
 		V:                int(v),
 		Value:            value,
+
+		// Parity only
+		Creates:   txResult.Creates,
+		NetworkId: txResult.NetworkId,
+		PublicKey: txResult.PublicKey,
+		Raw:       txResult.Raw,
+		StandardV: standardV,
 	}
 	return &tx, nil
+}
+
+// Equals determines whether two TransactionResults are equal
+func (txResult *TransactionResult) Equals(txResult2 *TransactionResult) bool {
+
+	if txResult.From != txResult2.From ||
+		txResult.Gas != txResult2.Gas ||
+		txResult.GasPrice != txResult2.GasPrice ||
+		txResult.Hash != txResult2.Hash ||
+		txResult.Input != txResult2.Input ||
+		txResult.Nonce != txResult2.Nonce ||
+		txResult.R != txResult2.R ||
+		txResult.S != txResult2.S ||
+		txResult.V != txResult2.V ||
+		txResult.Value != txResult2.Value {
+		return false
+	}
+
+	// confirmed tx
+	if !AreEqualString(txResult.BlockHash, txResult2.BlockHash) ||
+		!AreEqualString(txResult.BlockNumber, txResult2.BlockNumber) ||
+		!AreEqualString(txResult.TransactionIndex, txResult2.TransactionIndex) {
+		return false
+	}
+
+	// null for contract creation
+	if !AreEqualString(txResult.To, txResult2.To) {
+		return false
+	}
+
+	// Parity only
+	if !AreEqualString(txResult.Creates, txResult2.Creates) ||
+		!AreEqualInt(txResult.NetworkId, txResult2.NetworkId) ||
+		!AreEqualString(txResult.PublicKey, txResult2.PublicKey) ||
+		!AreEqualString(txResult.Raw, txResult2.Raw) ||
+		!AreEqualString(txResult.StandardV, txResult2.StandardV) {
+		return false
+	}
+
+	return true
 }
