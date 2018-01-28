@@ -31,6 +31,7 @@ type TransactionResult struct {
 	StandardV *string `json:"standardV"`
 }
 
+// NewTransactionResultFromJSON creates a new TransactionResult from JSON
 func NewTransactionResultFromJSON(b []byte) (*TransactionResult, error) {
 	txResult := TransactionResult{}
 	err := json.Unmarshal(b, &txResult)
