@@ -42,57 +42,58 @@ func NewTransactionFromJSON(b []byte) (*Transaction, error) {
 // ToTransactionResult converts a Transaction to a TransactionResult
 func (tx *Transaction) ToTransactionResult() (*TransactionResult, error) {
 
-	var blockHash string
-	var blockHashSafe *string
+	// pointers
+	var blockHash, blockNumber, to, transactionIndex *string
 	if tx.BlockHash != nil {
-		blockHash = *tx.BlockHash // store our own copy
-		blockHashSafe = &blockHash
+		blockHashString := *tx.BlockHash // store our own copy
+		blockHash = &blockHashString
 	}
-
-	var to string
-	var toSafe *string
+	if tx.BlockNumber != nil {
+		blockNumberString := "0x" + strconv.FormatInt(int64(*tx.BlockNumber), 16)
+		blockNumber = &blockNumberString
+	}
 	if tx.To != nil {
-		to = *tx.To // store our own copy
-		toSafe = &to
+		toString := *tx.To // store our own copy
+		to = &toString
+	}
+	if tx.TransactionIndex != nil {
+		transactionIndexString := "0x" + strconv.FormatInt(int64(*tx.TransactionIndex), 16)
+		transactionIndex = &transactionIndexString
 	}
 
-	blockNumber := "0x" + strconv.FormatInt(int64(*tx.BlockNumber), 16)
 	gas := "0x" + strconv.FormatInt(int64(tx.Gas), 16)
 	gasPrice := "0x" + tx.GasPrice.Text(16)
 	nonce := "0x" + strconv.FormatInt(int64(tx.Nonce), 16)
-	transactionIndex := "0x" + strconv.FormatInt(int64(*tx.TransactionIndex), 16)
 	v := "0x" + strconv.FormatInt(int64(tx.V), 16)
 	value := "0x" + tx.Value.Text(16)
 
 	// Parity only
-	var creates, publicKey, standardV, raw string
-	var createsSafe, publicKeySafe, standardVSafe, rawSafe *string
-	var networkId int
-	var networkIdSafe *int
+	var creates, publicKey, standardV, raw *string
+	var networkId *int
 	if tx.Creates != nil {
-		creates = *tx.Creates
-		createsSafe = &creates
+		createsString := *tx.Creates
+		creates = &createsString
 	}
 	if tx.NetworkId != nil {
-		networkId = *tx.NetworkId
-		networkIdSafe = &networkId
+		networkIdString := *tx.NetworkId
+		networkId = &networkIdString
 	}
 	if tx.PublicKey != nil {
-		publicKey = *tx.PublicKey
-		publicKeySafe = &publicKey
+		publicKeyString := *tx.PublicKey
+		publicKey = &publicKeyString
 	}
 	if tx.Raw != nil {
-		raw = *tx.Raw
-		rawSafe = &raw
+		rawString := *tx.Raw
+		raw = &rawString
 	}
 	if tx.StandardV != nil {
-		standardV = "0x" + strconv.FormatInt(int64(*tx.StandardV), 16)
-		standardVSafe = &standardV
+		standardVString := "0x" + strconv.FormatInt(int64(*tx.StandardV), 16)
+		standardV = &standardVString
 	}
 
 	txResult := TransactionResult{
-		BlockHash:        blockHashSafe,
-		BlockNumber:      &blockNumber,
+		BlockHash:        blockHash,
+		BlockNumber:      blockNumber,
 		From:             tx.From,
 		Gas:              gas,
 		GasPrice:         gasPrice,
@@ -101,17 +102,17 @@ func (tx *Transaction) ToTransactionResult() (*TransactionResult, error) {
 		Nonce:            nonce,
 		R:                tx.R,
 		S:                tx.S,
-		To:               toSafe,
-		TransactionIndex: &transactionIndex,
+		To:               to,
+		TransactionIndex: transactionIndex,
 		V:                v,
 		Value:            value,
 
 		// Parity only
-		Creates:   createsSafe,
-		NetworkId: networkIdSafe,
-		PublicKey: publicKeySafe,
-		Raw:       rawSafe,
-		StandardV: standardVSafe,
+		Creates:   creates,
+		NetworkId: networkId,
+		PublicKey: publicKey,
+		Raw:       raw,
+		StandardV: standardV,
 	}
 	return &txResult, nil
 }

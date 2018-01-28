@@ -42,11 +42,34 @@ func NewTransactionResultFromJSON(b []byte) (*TransactionResult, error) {
 
 // ToTransaction converts a TransactionResult to a Transaction
 func (txResult *TransactionResult) ToTransaction() (*Transaction, error) {
-	blockNumber, err := strconv.ParseInt(*txResult.BlockNumber, 0, 32)
-	if err != nil {
-		return nil, fmt.Errorf("ToTransaction BlockNumber: %v", err)
+
+	// pointers
+	var blockHash, to *string
+	var blockNumber, transactionIndex *int
+	if txResult.BlockHash != nil {
+		blockHashString := *txResult.BlockHash
+		blockHash = &blockHashString
 	}
-	blockNumberInt := int(blockNumber)
+	if txResult.BlockNumber != nil {
+		blockNumberInt64, err := strconv.ParseInt(*txResult.BlockNumber, 0, 32)
+		if err != nil {
+			return nil, fmt.Errorf("ToTransaction BlockNumber: %v", err)
+		}
+		blockNumberInt := int(blockNumberInt64)
+		blockNumber = &blockNumberInt
+	}
+	if txResult.To != nil {
+		toString := *txResult.To
+		to = &toString
+	}
+	if txResult.TransactionIndex != nil {
+		transactionIndexInt64, err := strconv.ParseInt(*txResult.TransactionIndex, 0, 32)
+		if err != nil {
+			return nil, fmt.Errorf("ToTransaction TransactionIndex: %v", err)
+		}
+		transactionIndexInt := int(transactionIndexInt64)
+		transactionIndex = &transactionIndexInt
+	}
 
 	gas, err := strconv.ParseInt(txResult.Gas, 0, 32)
 	if err != nil {
@@ -61,7 +84,33 @@ func (txResult *TransactionResult) ToTransaction() (*Transaction, error) {
 		return nil, fmt.Errorf("ToTransaction Nonce: %v", err)
 	}
 
-	var standardV *int
+	v, err := strconv.ParseInt(txResult.V, 0, 32)
+	if err != nil {
+		return nil, fmt.Errorf("ToTransaction V: %v", err)
+	}
+
+	value := new(big.Int)
+	value.SetString(txResult.Value, 0)
+
+	// Parity only
+	var creates, publicKey, raw *string
+	var networkId, standardV *int
+	if txResult.Creates != nil {
+		createsString := *txResult.Creates
+		creates = &createsString
+	}
+	if txResult.NetworkId != nil {
+		networkIdString := *txResult.NetworkId
+		networkId = &networkIdString
+	}
+	if txResult.PublicKey != nil {
+		publicKeyString := *txResult.PublicKey
+		publicKey = &publicKeyString
+	}
+	if txResult.Raw != nil {
+		rawString := *txResult.Raw
+		raw = &rawString
+	}
 	if txResult.StandardV != nil {
 		standardVInt64, err := strconv.ParseInt(*txResult.StandardV, 0, 32)
 		if err != nil {
@@ -71,23 +120,9 @@ func (txResult *TransactionResult) ToTransaction() (*Transaction, error) {
 		standardV = &standardVInt
 	}
 
-	transactionIndex, err := strconv.ParseInt(*txResult.TransactionIndex, 0, 32)
-	if err != nil {
-		return nil, fmt.Errorf("ToTransaction TransactionIndex: %v", err)
-	}
-	transactionIndexInt := int(transactionIndex)
-
-	v, err := strconv.ParseInt(txResult.V, 0, 32)
-	if err != nil {
-		return nil, fmt.Errorf("ToTransaction V: %v", err)
-	}
-
-	value := new(big.Int)
-	value.SetString(txResult.Value, 0)
-
 	tx := Transaction{
-		BlockHash:        txResult.BlockHash,
-		BlockNumber:      &blockNumberInt,
+		BlockHash:        blockHash,
+		BlockNumber:      blockNumber,
 		From:             txResult.From,
 		Gas:              int(gas),
 		GasPrice:         gasPrice,
@@ -96,16 +131,16 @@ func (txResult *TransactionResult) ToTransaction() (*Transaction, error) {
 		Nonce:            int(nonce),
 		R:                txResult.R,
 		S:                txResult.S,
-		To:               txResult.To,
-		TransactionIndex: &transactionIndexInt,
+		To:               to,
+		TransactionIndex: transactionIndex,
 		V:                int(v),
 		Value:            value,
 
 		// Parity only
-		Creates:   txResult.Creates,
-		NetworkId: txResult.NetworkId,
-		PublicKey: txResult.PublicKey,
-		Raw:       txResult.Raw,
+		Creates:   creates,
+		NetworkId: networkId,
+		PublicKey: publicKey,
+		Raw:       raw,
 		StandardV: standardV,
 	}
 	return &tx, nil
