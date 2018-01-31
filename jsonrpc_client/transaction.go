@@ -23,8 +23,9 @@ type Transaction struct {
 	Value            *big.Int `json:"value"`
 
 	// Parity only
+	Condition *string `json:"condition"`
+	ChainId   *int    `json:"chain_id"`
 	Creates   *string `json:"creates"`
-	NetworkId *int    `json:"network_id"`
 	PublicKey *string `json:"public_key"`
 	Raw       *string `json:"raw"`
 	StandardV *int    `json:"standard_v"`
@@ -69,15 +70,19 @@ func (tx *Transaction) ToTransactionResult() (*TransactionResult, error) {
 	value := "0x" + tx.Value.Text(16)
 
 	// Parity only
-	var creates, publicKey, standardV, raw *string
-	var networkId *int
+	var condition, creates, publicKey, standardV, raw *string
+	var chainId *int
+	if tx.ChainId != nil {
+		chainIdInt := *tx.ChainId
+		chainId = &chainIdInt
+	}
+	if tx.Condition != nil {
+		conditionString := *tx.Condition
+		condition = &conditionString
+	}
 	if tx.Creates != nil {
 		createsString := *tx.Creates
 		creates = &createsString
-	}
-	if tx.NetworkId != nil {
-		networkIdString := *tx.NetworkId
-		networkId = &networkIdString
 	}
 	if tx.PublicKey != nil {
 		publicKeyString := *tx.PublicKey
@@ -109,8 +114,9 @@ func (tx *Transaction) ToTransactionResult() (*TransactionResult, error) {
 		Value:            value,
 
 		// Parity only
+		Condition: condition,
+		ChainId:   chainId,
 		Creates:   creates,
-		NetworkId: networkId,
 		PublicKey: publicKey,
 		Raw:       raw,
 		StandardV: standardV,
@@ -160,8 +166,9 @@ func (tx *Transaction) Equals(tx2 *Transaction) bool {
 	}
 
 	// Parity only
-	if !AreEqualString(tx.Creates, tx2.Creates) ||
-		!AreEqualInt(tx.NetworkId, tx2.NetworkId) ||
+	if !AreEqualInt(tx.ChainId, tx2.ChainId) ||
+		!AreEqualString(tx.Condition, tx2.Condition) ||
+		!AreEqualString(tx.Creates, tx2.Creates) ||
 		!AreEqualString(tx.PublicKey, tx2.PublicKey) ||
 		!AreEqualString(tx.Raw, tx2.Raw) ||
 		!AreEqualInt(tx.StandardV, tx2.StandardV) {

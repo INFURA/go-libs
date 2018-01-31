@@ -24,8 +24,9 @@ type TransactionResult struct {
 	Value            string  `json:"value"`
 
 	// Parity only
+	ChainId   *int    `json:"chainId"`   // null for some txs
+	Condition *string `json:"condition"` // unknown type
 	Creates   *string `json:"creates"`   // null when not creating contract
-	NetworkId *int    `json:"networkId"` // null for some txs
 	PublicKey *string `json:"publicKey"`
 	Raw       *string `json:"raw"`
 	StandardV *string `json:"standardV"`
@@ -94,15 +95,19 @@ func (txResult *TransactionResult) ToTransaction() (*Transaction, error) {
 	value.SetString(txResult.Value, 0)
 
 	// Parity only
-	var creates, publicKey, raw *string
-	var networkId, standardV *int
+	var condition, creates, publicKey, raw *string
+	var chainId, standardV *int
+	if txResult.ChainId != nil {
+		chainIdInt := *txResult.ChainId
+		chainId = &chainIdInt
+	}
+	if txResult.Condition != nil {
+		conditionString := *txResult.Condition
+		condition = &conditionString
+	}
 	if txResult.Creates != nil {
 		createsString := *txResult.Creates
 		creates = &createsString
-	}
-	if txResult.NetworkId != nil {
-		networkIdString := *txResult.NetworkId
-		networkId = &networkIdString
 	}
 	if txResult.PublicKey != nil {
 		publicKeyString := *txResult.PublicKey
@@ -138,8 +143,9 @@ func (txResult *TransactionResult) ToTransaction() (*Transaction, error) {
 		Value:            value,
 
 		// Parity only
+		Condition: condition,
+		ChainId:   chainId,
 		Creates:   creates,
-		NetworkId: networkId,
 		PublicKey: publicKey,
 		Raw:       raw,
 		StandardV: standardV,
@@ -185,8 +191,9 @@ func (txResult *TransactionResult) Equals(txResult2 *TransactionResult) bool {
 	}
 
 	// Parity only
-	if !AreEqualString(txResult.Creates, txResult2.Creates) ||
-		!AreEqualInt(txResult.NetworkId, txResult2.NetworkId) ||
+	if !AreEqualInt(txResult.ChainId, txResult2.ChainId) ||
+		!AreEqualString(txResult.Condition, txResult2.Condition) ||
+		!AreEqualString(txResult.Creates, txResult2.Creates) ||
 		!AreEqualString(txResult.PublicKey, txResult2.PublicKey) ||
 		!AreEqualString(txResult.Raw, txResult2.Raw) ||
 		!AreEqualString(txResult.StandardV, txResult2.StandardV) {
