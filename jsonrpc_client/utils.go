@@ -2,6 +2,7 @@ package jsonrpc_client
 
 import (
 	"math/big"
+	"strings"
 )
 
 // AreEqualString
@@ -29,4 +30,13 @@ func AreEqualBigInt(a, b *big.Int) bool {
 	}
 
 	return a.Text(16) == b.Text(16)
+}
+
+// ZeroPad
+func ZeroPad(s string, count int) string {
+	if len(s) >= count {
+		return s
+	}
+	diff := count - len(s)
+	return strings.Repeat("0", diff) + s
 }

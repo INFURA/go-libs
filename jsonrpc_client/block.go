@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"math/big"
 	"strconv"
+	"strings"
 )
 
 type Block struct {
@@ -46,7 +47,8 @@ func (block *Block) ToBlockResult() (*BlockResult, error) {
 	difficulty := "0x" + strconv.FormatInt(block.Difficulty, 16)
 	gasLimit := "0x" + strconv.FormatInt(int64(block.GasLimit), 16)
 	gasUsed := "0x" + strconv.FormatInt(int64(block.GasUsed), 16)
-	nonce := "0x" + block.Nonce.Text(16)
+	// the nonce must display the full 64 bits (16 hex characters)
+	nonce := "0x" + ZeroPad(block.Nonce.Text(16), 16)
 	number := "0x" + strconv.FormatInt(int64(block.Number), 16)
 	size := "0x" + strconv.FormatInt(int64(block.Size), 16)
 	timestamp := "0x" + strconv.FormatInt(int64(block.Timestamp), 16)
@@ -78,12 +80,14 @@ func (block *Block) ToBlockResult() (*BlockResult, error) {
 	}
 
 	// populate the transactions in the block
-	for _, tx := range block.Transactions {
+	numTxs := len(block.Transactions)
+	blockResult.Transactions = make([]TransactionResult, numTxs, numTxs)
+	for i, tx := range block.Transactions {
 		txResult, err := tx.ToTransactionResult()
 		if err != nil {
 			return nil, err
 		}
-		blockResult.Transactions = append(blockResult.Transactions, *txResult)
+		blockResult.Transactions[i] = *txResult
 	}
 
 	return &blockResult, nil
