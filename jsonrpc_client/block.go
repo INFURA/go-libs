@@ -4,7 +4,6 @@ import (
 	"encoding/json"
 	"math/big"
 	"strconv"
-	"strings"
 )
 
 type Block struct {
